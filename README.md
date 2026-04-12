@@ -38,7 +38,9 @@ Or add to `.pi/settings.json`:
 
 ## Available Skills
 
-Coming soon...
+| Skill | Description |
+|-------|-------------|
+| [opencode-go-models](opencode-go-models/) | Model routing guide for OpenCode Go subscription — quickly pick the right model (GLM-5.1, MiMo-V2-Pro, Kimi K2.5, etc.) for any task |
 
 ## Creating a New Skill
 
