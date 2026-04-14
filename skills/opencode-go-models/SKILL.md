@@ -15,7 +15,6 @@ This skill helps route tasks to the right model in the Pi coding agent OpenCode 
 - **Usage limits:** $12 per 5 hours / $30 per week / $60 per month (in dollar-equivalent usage)
 - **Privacy:** Zero-retention policy; data not used for training
 - **Endpoints:** Hosted in US, EU, and Singapore for stable global access
-- **Setup:** Run `/connect` in TUI → select "OpenCode Go" → paste API key
 
 ### Approximate Requests per Limit Period
 
@@ -30,20 +29,6 @@ This skill helps route tasks to the right model in the Pi coding agent OpenCode 
 | MiniMax M2.5 | 20,000 | 50,000 | 100,000 |
 
 MiniMax M2.5 gives ~23× more requests per month than GLM-5.1. Use it for high-volume tasks; use GLM-5.1/MiMo-V2-Pro for hard problems.
-
-### Model IDs and Endpoints
-
-| Model | Model ID | Endpoint | AI SDK Package |
-|---|---|---|---|
-| GLM-5.1 | `glm-5.1` | `…/v1/chat/completions` | `@ai-sdk/openai-compatible` |
-| GLM-5 | `glm-5` | `…/v1/chat/completions` | `@ai-sdk/openai-compatible` |
-| Kimi K2.5 | `kimi-k2.5` | `…/v1/chat/completions` | `@ai-sdk/openai-compatible` |
-| MiMo-V2-Pro | `mimo-v2-pro` | `…/v1/chat/completions` | `@ai-sdk/openai-compatible` |
-| MiMo-V2-Omni | `mimo-v2-omni` | `…/v1/chat/completions` | `@ai-sdk/openai-compatible` |
-| MiniMax M2.7 | `minimax-m2.7` | `…/v1/messages` | `@ai-sdk/anthropic` |
-| MiniMax M2.5 | `minimax-m2.5` | `…/v1/messages` | `@ai-sdk/anthropic` |
-
-All endpoints use base URL `https://opencode.ai/zen/go/v1`. Config format: `opencode-go/<model-id>`, e.g., `opencode-go/kimi-k2.5`.
 
 ---
 
