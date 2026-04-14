@@ -8,6 +8,8 @@
  * 2. Shows a spinner while extracting questions as structured JSON
  * 3. Presents an interactive TUI to navigate and answer questions
  * 4. Submits the compiled answers when done
+ *
+ * Originally by Armin Ronacher: https://github.com/mitsuhiko/agent-stuff/blob/main/extensions/answer.ts
  */
 
 import { complete, type Model, type Api, type UserMessage } from "@mariozechner/pi-ai";
@@ -67,35 +69,32 @@ Example output:
   ]
 }`;
 
-const CODEX_MODEL_ID = "gpt-5.1-codex-mini";
-const HAIKU_MODEL_ID = "claude-haiku-4-5";
+// OpenCode Go model IDs for question extraction
+// Prefer MiniMax M2.5 for routine tasks (max requests)
+const OPENCODE_GO_PROVIDER = "opencode-go";
+const PREFERRED_MODEL_IDS = ["minimax-m2.5", "minimax-m2.7"];
 
 /**
- * Prefer Codex mini for extraction when available, otherwise fallback to haiku or the current model.
+ * Find the first available OpenCode Go model, otherwise fallback to current model.
+ * OpenCode Go models are ideal for extraction tasks as they're cost-effective.
  */
 async function selectExtractionModel(
 	currentModel: Model<Api>,
 	modelRegistry: ModelRegistry,
 ): Promise<Model<Api>> {
-	const codexModel = modelRegistry.find("openai-codex", CODEX_MODEL_ID);
-	if (codexModel) {
-		const auth = await modelRegistry.getApiKeyAndHeaders(codexModel);
-		if (auth.ok) {
-			return codexModel;
+	// Try each preferred model in order
+	for (const modelId of PREFERRED_MODEL_IDS) {
+		const model = modelRegistry.find(OPENCODE_GO_PROVIDER, modelId);
+		if (model) {
+			const auth = await modelRegistry.getApiKeyAndHeaders(model);
+			if (auth.ok) {
+				return model;
+			}
 		}
 	}
 
-	const haikuModel = modelRegistry.find("anthropic", HAIKU_MODEL_ID);
-	if (!haikuModel) {
-		return currentModel;
-	}
-
-	const auth = await modelRegistry.getApiKeyAndHeaders(haikuModel);
-	if (!auth.ok) {
-		return currentModel;
-	}
-
-	return haikuModel;
+	// No OpenCode Go model available, use current model
+	return currentModel;
 }
 
 /**
