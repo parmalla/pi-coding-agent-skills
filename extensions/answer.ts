@@ -70,9 +70,9 @@ Example output:
 }`;
 
 // OpenCode Go model IDs for question extraction
-// Prefer MiniMax M2.5 for routine tasks (max requests)
+// Prefer cheapest models (max requests per subscription period)
 const OPENCODE_GO_PROVIDER = "opencode-go";
-const PREFERRED_MODEL_IDS = ["minimax-m2.5", "minimax-m2.7"];
+const PREFERRED_MODEL_IDS = ["qwen3.5-plus", "minimax-m2.5"];
 
 /**
  * Find the first available OpenCode Go model, otherwise fallback to current model.
