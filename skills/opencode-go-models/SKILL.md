@@ -1,6 +1,6 @@
 ---
 name: opencode-go-models
-description: Model routing guide for the Pi coding agent OpenCode Go subscription. Use this skill whenever the user asks which model to use, wants to switch models, is picking a model for a task, mentions any of the available models by name (GLM-5, GLM-5.1, Kimi K2.5, MiMo-V2-Pro, MiMo-V2-Omni, MiniMax M2.5, MiniMax M2.7), or describes a task and implicitly needs a model recommendation. Always consult this before suggesting a model.
+description: Model routing guide for the Pi coding agent OpenCode Go subscription. Use this skill whenever the user asks which model to use, wants to switch models, is picking a model for a task, mentions any of the available models by name (GLM-5, GLM-5.1, Kimi K2.5, MiMo-V2-Pro, MiMo-V2-Omni, MiniMax M2.5, MiniMax M2.7, Qwen3.5 Plus, Qwen3.6 Plus), or describes a task and implicitly needs a model recommendation. Always consult this before suggesting a model.
 ---
 
 # OpenCode Go — Model Routing Guide
@@ -25,10 +25,12 @@ This skill helps route tasks to the right model in the Pi coding agent OpenCode 
 | Kimi K2.5 | 1,850 | 4,630 | 9,250 |
 | MiMo-V2-Pro | 1,290 | 3,225 | 6,450 |
 | MiMo-V2-Omni | 2,150 | 5,450 | 10,900 |
-| MiniMax M2.7 | 14,000 | 35,000 | 70,000 |
-| MiniMax M2.5 | 20,000 | 50,000 | 100,000 |
+| Qwen3.6 Plus | 3,300 | 8,200 | 16,300 |
+| MiniMax M2.7 | 3,400 | 8,500 | 17,000 |
+| MiniMax M2.5 | 6,300 | 15,900 | 31,800 |
+| Qwen3.5 Plus | 10,200 | 25,200 | 50,500 |
 
-MiniMax M2.5 gives ~23× more requests per month than GLM-5.1. Use it for high-volume tasks; use GLM-5.1/MiMo-V2-Pro for hard problems.
+Qwen3.5 Plus gives ~12× more requests per month than GLM-5.1 — the highest volume in the lineup. Use Qwen3.5 Plus or MiniMax M2.5 for high-volume tasks; use GLM-5.1/MiMo-V2-Pro for hard problems.
 
 ---
 
@@ -39,10 +41,12 @@ MiniMax M2.5 gives ~23× more requests per month than GLM-5.1. Use it for high-v
 | Complex multi-file coding, long refactor, repo gen | **GLM-5.1** | #1 open-weight on SWE-Bench Pro, long-horizon agentic loops |
 | Full codebase ingestion, long agent sessions | **MiMo-V2-Pro** | 1M ctx, low hallucination, strong tool calls |
 | Q&A over web search results | **MiMo-V2-Pro** | Lowest hallucination rate in the lineup |
+| Strong coding with 1M context & tool use | **Qwen3.6 Plus** | 78.8% SWE-bench, 61.6% Terminal-Bench, 1M ctx, always-on reasoning |
 | Strong all-round coding at low cost | **MiniMax M2.7** | 86.2% PinchBench, self-evolution, deep code reading |
-| High-volume routine/simpler tasks | **MiniMax M2.5** | 23× more requests/month, still 80.2% SWE-bench |
+| High-volume routine/simpler tasks | **Qwen3.5 Plus** | ~12× more requests/month than GLM-5.1, still 76.4% SWE-bench |
+| Volume coding with best SWE-bench per request | **MiniMax M2.5** | ~7× more requests/month, 80.2% SWE-bench |
 | Screenshot → code, visual UI tasks | **Kimi K2.5** | Vision encoder, strong front-end work |
-| Image / video / audio understanding | **MiMo-V2-Omni** | Only multimodal model in the lineup |
+| Image / video / audio understanding | **MiMo-V2-Omni** | Only multimodal model with audio in the lineup |
 | Math-heavy or science reasoning | **Kimi K2.5** | AIME 96.1%, HLE 50.2% with tools |
 | GLM-5.1 unavailable / quota exhausted | **GLM-5** | Same family, solid fallback |
 
@@ -181,7 +185,7 @@ March 2026 upgrade to M2.5. The biggest surprise in this lineup — PinchBench 8
 - Reads code extensively before writing — catches deeper issues other models miss
 - Found all 6 bugs and all 10 security vulnerabilities in Kilo Code's benchmark (matching Claude Opus 4.6)
 - M2.7-highspeed variant available (same results, faster inference)
-- 23× more requests per subscription period than GLM-5.1 — best value in the lineup for volume
+- ~4× more requests per subscription period than GLM-5.1 — strong value for volume tasks
 
 **Weaknesses:**
 - ~200K context (not 1M; use MiMo-V2-Pro for larger codebases)
@@ -201,7 +205,7 @@ The earlier version of M2.7 but notably has an 80.2% SWE-bench Verified score �
 **Strengths:**
 - SWE-bench Verified: 80.2% — best raw score in the lineup on standard SWE-bench
 - 10B active parameters — very fast inference (100 tok/s for M2.5-Lightning variant)
-- Cheapest model per request — ~23× more requests/month than GLM-5.1
+- Very cost-efficient per request — ~7× more requests/month than GLM-5.1
 - Token-efficient: ~17M output tokens per task vs GLM-5's ~110M
 - "Architect Mindset": decomposes and plans before writing code
 - Spec-first approach produces clean initial scaffolding
@@ -215,15 +219,78 @@ The earlier version of M2.7 but notably has an 80.2% SWE-bench Verified score �
 
 **Use when:** Bulk code review, automated PR generation, repetitive linting or formatting, anywhere you want maximum requests per dollar.
 
-**Tip:** Prefer M2.7 for complex tasks unless you're specifically optimizing for request count. M2.7 delivers meaningfully better analysis for only slightly fewer requests.
+**Tip:** Prefer M2.7 for complex tasks unless you're specifically optimizing for request count. Qwen3.5 Plus now offers the highest request volume (~12× GLM-5.1) with multimodal support — choose M2.5 only if you need its 80.2% SWE-bench at ~7× volume.
+
+---
+
+### Qwen3.6 Plus — Strong Coding with 1M Context & Tool Use
+**By: Alibaba (Qwen Team) | Context: 1M (256K native, extended via YaRN) | Output: 65K max | Always-on reasoning | Proprietary**
+
+The coding-focused upgrade to Qwen3.5 Plus, released March 2026. Built on a next-generation hybrid architecture (linear attention + MoE) with always-on chain-of-thought that's more decisive than Qwen3.5's overthinking behavior. Scores 78.8% on SWE-bench Verified and 61.6% on Terminal-Bench 2.0 — beating Claude Opus 4.5 on terminal tasks. Native function calling for reliable tool use and multi-step agent workflows.
+
+**Strengths:**
+- SWE-bench Verified: 78.8% — competitive with Claude Opus 4.5
+- Terminal-Bench 2.0: 61.6% — beats Claude Opus 4.5 (59.3), GLM-5 (56.2)
+- 1M token context — ingest entire codebases without chunking
+- 65K max output tokens — longest single-response output in the lineup
+- Always-on reasoning with decisive output — fixes Qwen3.5's overthinking problem
+- Perfect consistency (10.0) with zero flaky tests — production-ready reliability
+- Native function calling — reliable tool use for agentic workflows (MCPMark: 48.2%)
+- 158 tok/s throughput — ~2× faster than Claude Opus 4.6
+- AIME 2026: 95.3%, GPQA Diamond: 90.4%, LiveCodeBench: 87.1%, MMLU Pro: 88.5
+- ~4× more requests per period than GLM-5.1
+
+**Weaknesses:**
+- Text-first; no native audio/video input (use MiMo-V2-Omni or Qwen3.5 Plus for full multimodal)
+- Higher hallucination rate than MiMo-V2-Pro — 26.5% fabrication rate on API/language claims per independent testing
+- Security coding below frontier models (43.3% hidden test success on Security Bench)
+- Time-to-first-token can be high (~11.5s on shared tiers)
+- Proprietary/closed-source — cannot be self-hosted
+- Slightly below GLM-5.1 on SWE-Bench Pro (56.6% vs 58.4%) and long-horizon agentic loops
+
+**Use when:** Coding tasks requiring 1M context, agentic workflows with tool calling, terminal automation, front-end generation. Best alternative to GLM-5.1 when you need more context or more requests per period.
+
+**Tip:** Qwen3.6 Plus and MiMo-V2-Pro both offer 1M context. Choose Qwen3.6 Plus when coding quality matters most; choose MiMo-V2-Pro when hallucination grounding matters most.
+
+---
+
+### Qwen3.5 Plus — Highest Volume, Multimodal
+**By: Alibaba (Qwen Team) | Params: 397B total / 17B active | Context: 262K native (up to 1M) | Output: 65K max | Multimodal: text + image + video**
+
+The highest-volume model in the OpenCode Go lineup, with ~12× more requests per month than GLM-5.1. Built on a Gated DeltaNet + MoE hybrid architecture activating only 17B of 397B parameters per token — making it the most token-efficient model available. Also the only model besides MiMo-V2-Omni and Kimi K2.5 with multimodal (image + video) support. Open-source under Apache 2.0.
+
+**Strengths:**
+- Highest request volume in the lineup — 10,200 per 5 hours, 50,500 per month (~12× GLM-5.1)
+- Multimodal: text + image + video understanding
+- SWE-bench Verified: 76.4% — solid coding capability
+- 1M context window (extended from 262K native)
+- 17B active params — most token-efficient model in the lineup
+- IFBench: 76.5 — beats GPT-5.2 (75.4) on instruction following
+- Open-source (Apache 2.0) — can be self-hosted
+
+**Weaknesses:**
+- Overthinking: tends to burn reasoning tokens in circular loops, producing verbose outputs and slower effective speed
+- Inconsistent behavior across repeated runs — consistency score 9.0 with 2 flaky test failures
+- SWE-bench 76.4% trails MiniMax M2.5 (80.2%), Qwen3.6 Plus (78.8%), and GLM-5.1
+- Higher hallucination than MiMo-V2-Pro
+- Default temperature 0.6 — more exploratory and less decisive than Qwen3.6 Plus (0.2)
+- Superseded by Qwen3.6 Plus for most text-only coding tasks
+
+**Use when:** Maximum request volume, multimodal tasks (image+video+text), routine code generation and review, bulk operations.
+
+**Tip:** For text-only coding, prefer Qwen3.6 Plus — it's more decisive, more consistent, and scores higher on coding benchmarks. Use Qwen3.5 Plus when you need its multimodal capabilities or the highest possible request count.
 
 ---
 
 ## Decision Flow
 
 ```
-Does the task involve images, video, or audio?
+Does the task involve audio or video understanding?
   └─ YES → MiMo-V2-Omni
+  └─ NO ↓
+
+Does the task involve images (screenshots, diagrams, video frames)?
+  └─ YES → Kimi K2.5 (front-end visual tasks) or Qwen3.5 Plus (image+video+text at high volume)
   └─ NO ↓
 
 Is it math, AIME-style reasoning, or screenshot-to-frontend?
@@ -235,11 +302,11 @@ Is it Q&A over retrieved web search content?
   └─ NO ↓
 
 Does the task require > 200K tokens of context?
-  └─ YES → MiMo-V2-Pro (1M ctx)
+  └─ YES → MiMo-V2-Pro (1M ctx, lowest hallucination) or Qwen3.6 Plus (1M ctx, strong coding + tool use)
   └─ NO ↓
 
 Is it a complex, multi-file, or long-horizon coding task?
-  └─ YES → GLM-5.1 (let it run)
+  └─ YES → GLM-5.1 (let it run) or Qwen3.6 Plus (strong coding, more requests per period)
   └─ NO ↓
 
 Is it general-purpose coding or a bug-fixing session where cost matters?
@@ -247,7 +314,7 @@ Is it general-purpose coding or a bug-fixing session where cost matters?
   └─ NO ↓
 
 Is it a routine, high-volume, or simple coding task?
-  └─ YES → MiniMax M2.5 (cheapest per request)
+  └─ YES → Qwen3.5 Plus (highest request volume) or MiniMax M2.5 (80.2% SWE-bench, ~7× requests)
   └─ NO → GLM-5.1 (default for anything ambiguous)
 ```
 
@@ -257,9 +324,11 @@ Is it a routine, high-volume, or simple coding task?
 
 - **Don't use Kimi K2.5 for web search Q&A.** Its -11 Omniscience score means it will confabulate instead of staying anchored to sources. Always verify its factual claims independently.
 - **Don't kill GLM-5.1 early.** Its value compounds over time. Let it run hundreds of turns on hard problems.
-- **Don't use MiMo-V2-Omni for text-only tasks.** It's the only multimodal model; route text tasks to Pro or GLM-5.1 for better results and more requests per period.
-- **Don't use MiniMax M2.5 for complex reasoning.** It's optimized for SWE-bench-style coding, not broad reasoning — and it can change linter thresholds instead of fixing code. Prefer M2.7 for anything complex.
-- **Don't assume MiniMax models have 1M context.** M2.5 is 205K and M2.7 is ~200K. Use MiMo-V2-Pro for codebases exceeding 200K tokens.
+- **Don't use MiMo-V2-Omni for text-only tasks.** It's the only model with audio understanding; route text tasks to Pro, GLM-5.1, or Qwen3.6 Plus for better results and more requests per period.
+- **Don't use MiniMax M2.5 for complex reasoning.** It's optimized for SWE-bench-style coding, not broad reasoning — and it can change linter thresholds instead of fixing code. Prefer M2.7 or Qwen3.6 Plus for anything complex.
+- **Don't assume MiniMax models have 1M context.** M2.5 is 205K and M2.7 is ~200K. Use MiMo-V2-Pro or Qwen3.6 Plus for codebases exceeding 200K tokens.
+- **Don't use Qwen3.5 Plus for text-only coding when Qwen3.6 Plus is available.** Qwen3.6 Plus fixes the overthinking problem, scores higher on SWE-bench (78.8% vs 76.4%), and has perfect consistency. Use 3.5 Plus only when you need multimodal support or maximum request volume.
+- **Don't trust Qwen3.6 Plus for factual API claims without verification.** Independent testing shows a 26.5% fabrication rate on API/language reasoning claims. Verify its code suggestions independently.
 - **GLM-5 ≠ GLM-5.1.** GLM-5.1 is a major post-training leap optimized for coding — don't treat them as interchangeable. Use GLM-5 only as a fallback.
 - **Don't rush MiniMax M2.7.** It reads extensively before writing. This deep reading catches issues other models miss but takes more time per task.
 
@@ -277,8 +346,10 @@ All models use **Mixture-of-Experts (MoE)** — only a fraction of parameters ac
 | MiMo-V2-Omni | — | — | ~262K | — |
 | MiniMax M2.7 | 230B | 10B | ~200K | 128K |
 | MiniMax M2.5 | 230B | 10B | 205K | — |
+| Qwen3.6 Plus | — | — | 1M (256K native) | 65K |
+| Qwen3.5 Plus | 397B | 17B | 262K (up to 1M) | 65K |
 
-MoE means inference cost scales with *active* parameters, not total — which is how these models achieve frontier performance at subscription pricing. MiniMax's 10B active params makes it the most token-efficient in the lineup, while GLM-5.1's 40B active params provides deeper reasoning at higher per-token cost.
+MoE means inference cost scales with *active* parameters, not total — which is how these models achieve frontier performance at subscription pricing. MiniMax's 10B and Qwen3.5 Plus's 17B active params make them the most token-efficient in the lineup, while GLM-5.1's 40B active params provides deeper reasoning at higher per-token cost.
 
 ---
 
@@ -286,7 +357,7 @@ MoE means inference cost scales with *active* parameters, not total — which is
 
 For maximum effectiveness within the OpenCode Go subscription, route intelligently based on both task type and budget:
 
-**Daily driver (most tasks):** MiniMax M2.7 — strong all-around, 23× more requests than GLM-5.1, reads deeply before writing.
+**Daily driver (most tasks):** MiniMax M2.7 — strong all-around, ~4× more requests than GLM-5.1, reads deeply before writing. Qwen3.6 Plus is a strong alternative with 1M context and better coding benchmarks.
 
 **Hard problems (let it run):** GLM-5.1 — best coding model in the lineup for complex, multi-file work. Sustains improvement over hundreds of rounds.
 
@@ -294,6 +365,6 @@ For maximum effectiveness within the OpenCode Go subscription, route intelligent
 
 **Frontend or visual tasks:** Kimi K2.5 (screenshots → code) or MiMo-V2-Omni (general multimodal).
 
-**Bulk/high-volume tasks:** MiniMax M2.5 — maximum requests per period, still 80.2% SWE-bench. But prefer M2.7 for anything requiring deeper analysis.
+**Bulk/high-volume tasks:** Qwen3.5 Plus — highest request volume in the lineup (~12× GLM-5.1), multimodal support, 76.4% SWE-bench. MiniMax M2.5 is close behind with 80.2% SWE-bench at ~7× volume.
 
-**Fallback:** GLM-5 when GLM-5.1 is rate-limited.
+**Fallback:** GLM-5 when GLM-5.1 is rate-limited. Qwen3.6 Plus when GLM-5.1 is rate-limited but you still need strong coding (78.8% SWE-bench, 61.6% Terminal-Bench).
