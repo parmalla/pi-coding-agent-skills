@@ -1,6 +1,6 @@
 ---
 name: opencode-go-models
-description: Model routing guide for the Pi coding agent OpenCode Go subscription. Use this skill whenever the user asks which model to use, wants to switch models, is picking a model for a task, mentions any of the available models by name (GLM-5, GLM-5.1, Kimi K2.5, MiMo-V2-Pro, MiMo-V2-Omni, MiniMax M2.5, MiniMax M2.7, Qwen3.5 Plus, Qwen3.6 Plus), or describes a task and implicitly needs a model recommendation. Always consult this before suggesting a model.
+description: Model routing guide for the Pi coding agent OpenCode Go subscription. Use this skill whenever the user asks which model to use, wants to switch models, is picking a model for a task, mentions any of the available models by name (GLM-5, GLM-5.1, Kimi K2.5, Kimi K2.6, MiMo-V2-Pro, MiMo-V2.5-Pro, MiMo-V2.5, MiMo-V2-Omni, MiniMax M2.5, MiniMax M2.7, Qwen3.5 Plus, Qwen3.6 Plus, DeepSeek V4 Pro, DeepSeek V4 Flash), or describes a task and implicitly needs a model recommendation. Always consult this before suggesting a model.
 ---
 
 # OpenCode Go — Model Routing Guide
@@ -23,14 +23,19 @@ This skill helps route tasks to the right model in the Pi coding agent OpenCode 
 | GLM-5.1 | 880 | 2,150 | 4,300 |
 | GLM-5 | 1,150 | 2,880 | 5,750 |
 | Kimi K2.5 | 1,850 | 4,630 | 9,250 |
+| Kimi K2.6 | 1,150 | 2,880 | 5,750 |
 | MiMo-V2-Pro | 1,290 | 3,225 | 6,450 |
+| MiMo-V2.5-Pro | 1,290 | 3,225 | 6,450 |
 | MiMo-V2-Omni | 2,150 | 5,450 | 10,900 |
+| MiMo-V2.5 (≤ 256K) | 2,150 | 5,450 | 10,900 |
 | Qwen3.6 Plus | 3,300 | 8,200 | 16,300 |
 | MiniMax M2.7 | 3,400 | 8,500 | 17,000 |
+| DeepSeek V4 Pro | 3,450 | 8,550 | 17,150 |
 | MiniMax M2.5 | 6,300 | 15,900 | 31,800 |
 | Qwen3.5 Plus | 10,200 | 25,200 | 50,500 |
+| DeepSeek V4 Flash | 31,650 | 79,050 | 158,150 |
 
-Qwen3.5 Plus gives ~12× more requests per month than GLM-5.1 — the highest volume in the lineup. Use Qwen3.5 Plus or MiniMax M2.5 for high-volume tasks; use GLM-5.1/MiMo-V2-Pro for hard problems.
+Qwen3.5 Plus and DeepSeek V4 Flash give the highest volume in the lineup. Use DeepSeek V4 Flash, Qwen3.5 Plus, or MiniMax M2.5 for high-volume tasks; use GLM-5.1, Kimi K2.6, or DeepSeek V4 Pro for hard problems.
 
 ---
 
@@ -39,16 +44,19 @@ Qwen3.5 Plus gives ~12× more requests per month than GLM-5.1 — the highest vo
 | Task Type | Best Model | Why |
 |---|---|---|
 | Complex multi-file coding, long refactor, repo gen | **GLM-5.1** | #1 open-weight on SWE-Bench Pro, long-horizon agentic loops |
-| Full codebase ingestion, long agent sessions | **MiMo-V2-Pro** | 1M ctx, low hallucination, strong tool calls |
-| Q&A over web search results | **MiMo-V2-Pro** | Lowest hallucination rate in the lineup |
+| Full codebase ingestion, long agent sessions | **MiMo-V2-Pro / MiMo-V2.5-Pro** | 1M ctx, low hallucination, strong tool calls |
+| Q&A over web search results | **MiMo-V2-Pro / MiMo-V2.5-Pro** | Lowest hallucination rate in the lineup |
 | Strong coding with 1M context & tool use | **Qwen3.6 Plus** | 78.8% SWE-bench, 61.6% Terminal-Bench, 1M ctx, always-on reasoning |
 | Strong all-round coding at low cost | **MiniMax M2.7** | 86.2% PinchBench, self-evolution, deep code reading |
+| Frontier coding + competitive programming | **DeepSeek V4 Pro** | 80.6% SWE-bench, 67.9% Terminal-Bench 2.0, 93.5% LiveCodeBench |
+| Ultra-high-volume routine/simpler tasks | **DeepSeek V4 Flash** | ~37× more requests/month than GLM-5.1, 1M ctx, 79.0% SWE-bench |
 | High-volume routine/simpler tasks | **Qwen3.5 Plus** | ~12× more requests/month than GLM-5.1, still 76.4% SWE-bench |
 | Volume coding with best SWE-bench per request | **MiniMax M2.5** | ~7× more requests/month, 80.2% SWE-bench |
-| Screenshot → code, visual UI tasks | **Kimi K2.5** | Vision encoder, strong front-end work |
-| Image / video / audio understanding | **MiMo-V2-Omni** | Only multimodal model with audio in the lineup |
-| Math-heavy or science reasoning | **Kimi K2.5** | AIME 96.1%, HLE 50.2% with tools |
-| GLM-5.1 unavailable / quota exhausted | **GLM-5** | Same family, solid fallback |
+| Screenshot → code, visual UI tasks | **Kimi K2.5 / K2.6** | Vision encoder, strong front-end work |
+| Image / video / audio understanding | **MiMo-V2-Omni** | Only model with audio in the lineup |
+| Math-heavy or science reasoning | **Kimi K2.5 / K2.6** | AIME 96.1%+, HLE 50%+, strong tool use |
+| 12-hour autonomous runs, 300-agent swarms | **Kimi K2.6** | Designed for sustained autonomous operation |
+| GLM-5.1 unavailable / quota exhausted | **GLM-5** or **DeepSeek V4 Pro** | Same family or stronger alternative |
 
 ---
 
@@ -72,7 +80,7 @@ The top coding model in this lineup. Purpose-built for long-horizon agentic engi
 **Weaknesses:**
 - Text-only (no image/audio input)
 - Serial tool execution — reads files one at a time rather than in parallel, roughly doubling wall-clock time vs models that parallelize
-- 200K context; for full codebase ingestion (>200K tokens), use MiMo-V2-Pro's 1M ctx instead
+- 200K context; for full codebase ingestion (>200K tokens), use MiMo-V2-Pro/2.5-Pro or DeepSeek V4 instead
 - Most expensive per token in the lineup; fewer requests per subscription period
 
 **Use when:** Complex bugs, multi-file refactors, repo generation, any task worth letting run long.
@@ -87,6 +95,93 @@ The top coding model in this lineup. Purpose-built for long-horizon agentic engi
 The direct predecessor to GLM-5.1. Still best-in-class among open-source models at the time of its release (Feb 2026). SWE-Bench Verified: 77.8%. Won Vending Bench 2 among open models.
 
 **Use when:** GLM-5.1 is throttled, rate-limited, or unavailable. Nearly identical architecture, meaningfully weaker on long-horizon tasks but still strong.
+
+---
+
+### Kimi K2.6 — Long-Horizon Agentic Coding
+**By: Moonshot AI | Params: 1T total / 32B active | Context: 262K | Multimodal: text + image + video**
+
+The production-grade successor to K2.5, shipped April 2026. Built for 12-hour autonomous runs, 300-agent swarm coordination, and full-stack generation. Open-weight under Modified MIT license.
+
+**Strengths:**
+- SWE-Bench Pro: 58.6% — ahead of GPT-5.4 (57.7%), Claude Opus 4.6 (53.4%), Gemini 3.1 Pro (54.2%)
+- SWE-Bench Verified: 80.2% — up from K2.5's 76.8%
+- Terminal-Bench 2.0: 66.7% — up from K2.5's 50.8%
+- LiveCodeBench v6: 89.6%
+- HLE-Full with tools: 54.0% — leading GPT-5.4 (52.1%), Claude Opus 4.6 (53.0%)
+- BrowseComp (Agent Swarm): 86.3%
+- Agent Swarm scales to 300 sub-agents and 4,000 coordinated steps (up from K2.5's 100/1,500)
+- Automatic context compression — summarizes history as sessions grow, preventing truncation drift
+- Proactive autonomy — tuned to run 24/7 against a task queue, recognizing when it's stuck and replanning
+- Multimodal via 400M-parameter MoonViT vision encoder
+- Anthropic API compatible — drop-in replacement for Claude Code workflows
+
+**Weaknesses:**
+- Highest hallucination rate in the lineup (AA-Omniscience: -11) — verify factual claims carefully
+- Generates verbose, over-engineered code on first pass — ask it to simplify if needed
+- 262K context (not 1M; use MiMo-V2.5-Pro or DeepSeek V4 for larger codebases)
+- More expensive per request than K2.5 (~1,150 vs 1,850 req/5hr)
+
+**Use when:** Long-horizon autonomous coding, multi-agent orchestration, full-stack generation (UI → auth → DB), screenshot/wireframe → frontend, math-heavy logic.
+
+**Tip:** Give it a task queue, not a single question. K2.6 is tuned for proactive operation. Review the plan when orchestrating swarms, not every tool call.
+
+---
+
+### Kimi K2.5 — Reasoning, Math, and Vision-to-Code
+**By: Moonshot AI | Params: 1T total / 32B active | Context: 256K**
+
+1 trillion parameter MoE with a dedicated vision encoder and an Agent Swarm system. Best model in this lineup for mathematical reasoning and visual/front-end coding.
+
+**Strengths:**
+- Best math benchmarks in lineup: AIME 2025 (96.1%), HMMT (95.4%)
+- Leads on HLE with tools (50.2%) — above GPT-5.2
+- Strong visual-to-code: front-end UI from screenshots, wireframes, design files
+- Agent Swarm for parallel agentic coordination (up to 100 sub-agents)
+- Multimodal (text + images)
+- Visual debugging loop: can render its own UI output, compare to the original design, spot CSS discrepancies, and fix autonomously
+
+**Weaknesses:**
+- **Highest hallucination rate** in the lineup: AA-Omniscience score of -11 (gets more factual questions wrong than right on benchmarks). Verify factual claims carefully.
+- SWE-bench (76.8%) trails MiniMax M2.5 (80.2%) and GLM-5.1 despite larger parameter count
+- Generates 6× more tokens per task than the median model (~89M output tokens vs ~14M typical) — inflates context usage and costs
+- Can generate verbose, over-engineered code on first pass — ask it to simplify if needed
+- Slow effective speed despite decent per-token throughput due to verbosity
+
+**Use when:** Math-heavy logic, AIME-style reasoning, screenshot/wireframe → front-end code, multimodal tasks where MiMo-V2-Omni isn't available.
+
+**Tip:** Be very specific in prompts. Kimi tends to over-engineer on vague instructions. Verify its factual claims independently.
+
+---
+
+### MiMo-V2.5-Pro — Long Context + Low Hallucination (Upgraded)
+**By: Xiaomi | Params: 1.02T total / 42B active | Context: 1M (256K standard, up to 1M) | Open-source (MIT)**
+
+The upgraded successor to MiMo-V2-Pro, released April 2026. First open-weight Pro-tier MiMo model — predecessor was API-only. Built on a hybrid-attention architecture with Multi-Token Prediction (MTP) for ~3× output speed.
+
+**Strengths:**
+- **Lowest hallucination rate** in this Go lineup — grounded, stays anchored to sources
+- 1M token context — ingest entire codebases without chunking
+- Token-efficient: ~40–60% fewer tokens per trajectory than Claude Opus 4.6, Gemini 3.1 Pro, GPT-5.4 at comparable capability
+- ClawEval: 64% Pass^3 using only ~70K tokens per trajectory
+- Sustains complex long-horizon tasks spanning 1,000+ tool calls
+- Demonstrated perfect SysY compiler build (233/233 hidden tests) in 4.3 hours / 672 tool calls
+- Strong instruction following within agentic scenarios
+- Open-source under MIT license — can be self-hosted
+- MTP speculative decoding gives ~3× decode throughput
+
+**Weaknesses:**
+- Text-only (use MiMo-V2-Omni for multimodal)
+- 1M-token context tier costs more than 256K tier. On OpenCode Go flat subscription this is handled, but latency increases with longer contexts.
+- Math ceiling: struggles with frontier-level math problems
+
+**Use when:**
+- Q&A synthesis over web search results (low hallucination = stays anchored to sources)
+- Tasks requiring the full codebase in context (>200K tokens)
+- Long agent sessions where GLM-5.1's 200K ctx is insufficient
+- When you need an open-source, self-hostable 1M-context model
+
+**Tip:** MiMo-V2.5-Pro and MiMo-V2-Pro both offer 1M context at similar request counts. Prefer V2.5-Pro for new tasks — it's token-efficient, open-source, and has stronger long-horizon coherence.
 
 ---
 
@@ -120,6 +215,26 @@ Xiaomi's flagship agent model, originally deployed anonymously as "Hunter Alpha"
 
 ---
 
+### MiMo-V2.5 — Efficient Long-Context Model
+**By: Xiaomi | Context: up to 256K standard**
+
+The standard-tier companion to MiMo-V2.5-Pro. Offers the same lineage and architecture but capped at 256K context, making it more cost-efficient for tasks that don't need the full 1M window. Same request volume as MiMo-V2-Omni.
+
+**Strengths:**
+- Same low-hallucination pedigree as the Pro variant
+- Token-efficient with MTP speculative decoding
+- Higher request volume than Pro-tier models
+- Good for routine codebase analysis and agent tasks within 256K context
+
+**Weaknesses:**
+- 256K context cap (vs 1M on Pro)
+- Text-only
+- Not as thoroughly benchmarked as Pro/Omni variants
+
+**Use when:** You want MiMo's low-hallucination behavior at higher volume, and your codebase fits within 256K tokens.
+
+---
+
 ### MiMo-V2-Omni — Multimodal Tasks
 **By: Xiaomi | Context: ~262K | Multimodal: text, image, video, audio**
 
@@ -136,37 +251,69 @@ The dedicated multimodal companion to MiMo-V2-Pro. The only model in this lineup
 **Weaknesses:**
 - Text coding: SWE-bench 74.8% is noticeably below MiMo-V2-Pro (78%) and the MiniMax/GLM models
 - 262K context (less than Pro's 1M)
-- Don't use for text-only tasks — Pro and GLM-5.1 are significantly better and cheaper per request
+- Don't use for text-only tasks — Pro, GLM-5.1, and DeepSeek V4 are significantly better and cheaper per request
 
 **Use when:** You need to analyze UI screenshots, diagrams, charts, video frames, dashcam footage, or audio — not for text-only tasks.
 
-**Tip:** Don't use Omni for text-only tasks. Route those to Pro/GLM-5.1. Save Omni for when a non-text modality is genuinely in play.
+**Tip:** Don't use Omni for text-only tasks. Route those to Pro/GLM-5.1/DeepSeek V4. Save Omni for when a non-text modality is genuinely in play.
 
 ---
 
-### Kimi K2.5 — Reasoning, Math, and Vision-to-Code
-**By: Moonshot AI | Params: 1T total / 32B active | Context: 256K**
+### DeepSeek V4 Pro — Frontier Coding & Agentic Reasoning
+**By: DeepSeek | Params: 1.6T total / 49B active | Context: 1M | Output: 384K max | Open-source (MIT)**
 
-1 trillion parameter MoE with a dedicated vision encoder and an Agent Swarm system. Best model in this lineup for mathematical reasoning and visual/front-end coding.
+The largest open-weight model in this lineup. Shipped April 2026 as the flagship tier of the V4 family. Built on a hybrid attention mechanism (CSA + HCA) for dramatic long-context efficiency. Supports thinking/non-thinking modes via request parameter.
 
 **Strengths:**
-- Best math benchmarks in lineup: AIME 2025 (96.1%), HMMT (95.4%)
-- Leads on HLE with tools (50.2%) — above GPT-5.2
-- Strong visual-to-code: front-end UI from screenshots, wireframes, design files
-- Agent Swarm for parallel agentic coordination (up to 100 sub-agents)
-- Multimodal (text + images)
-- Visual debugging loop: can render its own UI output, compare to the original design, spot CSS discrepancies, and fix autonomously
+- SWE-Bench Verified: 80.6% — within 0.2 points of Claude Opus 4.6 (80.8%)
+- Terminal-Bench 2.0: 67.9% — beats Claude Opus 4.6 (65.4%)
+- LiveCodeBench: 93.5% — highest among evaluated models
+- Codeforces rating: 3206 — ahead of GPT-5.4 (3168)
+- GDPval-AA: 1554 — leads open-weight models on agentic real-world work tasks
+- 1M token context with efficient KV-cache usage (only 10% of V3.2's KV cache at 1M)
+- 384K max output — longest output in the lineup
+- MIT-licensed open weights — can be self-hosted
+- Dual API compatibility (OpenAI + Anthropic SDKs)
 
 **Weaknesses:**
-- **Highest hallucination rate** in the lineup: AA-Omniscience score of -11 (gets more factual questions wrong than right on benchmarks). Verify factual claims carefully.
-- SWE-bench (76.8%) trails MiniMax M2.5 (80.2%) and GLM-5.1 despite larger parameter count
-- Generates 6× more tokens per task than the median model (~89M output tokens vs ~14M typical) — inflates context usage and costs
-- Can generate verbose, over-engineered code on first pass — ask it to simplify if needed
-- Slow effective speed despite decent per-token throughput due to verbosity
+- Text-only (no native vision/audio)
+- Very high hallucination rate (94%) — when it doesn't know, it nearly always responds anyway
+- World knowledge gap: SimpleQA-Verified 57.9% vs Gemini 3.1 Pro 75.6%
+- HLE: 37.7% trails Claude (40.0%) and Gemini (44.4%)
+- High token usage (190M output tokens for Intelligence Index) — burns through context budget
+- Long-context retrieval trails Claude Opus 4.6 on MRCR
 
-**Use when:** Math-heavy logic, AIME-style reasoning, screenshot/wireframe → front-end code, multimodal tasks where MiMo-V2-Omni isn't available.
+**Use when:** Agentic coding assistants, competitive programming, multi-file refactors, long-document analysis, terminal automation. Best open-weight choice for hard coding tasks when GLM-5.1 is unavailable.
 
-**Tip:** Be very specific in prompts. Kimi tends to over-engineer on vague instructions. Verify its factual claims independently.
+**Tip:** Enable thinking mode with `reasoning_effort="high"` or `"max"` for hard problems. For fast/cheap responses, disable thinking. Always verify factual claims independently.
+
+---
+
+### DeepSeek V4 Flash — Ultra-High-Volume Workhorse
+**By: DeepSeek | Params: 284B total / 13B active | Context: 1M | Output: 384K max | Open-source (MIT)**
+
+The cost-efficient tier of the V4 family. At 13B active parameters, it's the most token-efficient frontier-capable model in the lineup. Same 1M context and MIT license as Pro.
+
+**Strengths:**
+- **Highest request volume in the lineup** — 31,650 per 5 hours, 158,150 per month (~37× GLM-5.1)
+- SWE-Bench Verified: 79.0% — only 1.6 points behind V4 Pro
+- LiveCodeBench: 91.6% — close to Pro's 93.5%
+- Putnam-200 math: 81.0 — surprisingly strong theorem-proving for its size
+- 1M token context at ultra-low cost
+- 384K max output
+- Extremely efficient: only 10% of V3.2's FLOPs and 7% of KV cache at 1M context
+- MIT-licensed open weights — ~160GB on disk, quantizable for local use
+
+**Weaknesses:**
+- Text-only
+- Behind Pro on hardest agentic tasks and knowledge recall
+- Very high hallucination rate (96%)
+- Preview model — benchmarks may shift at GA
+- High output token usage (240M for Intelligence Index)
+
+**Use when:** Bulk code review, automated PR generation, high-volume chat/RAG backends, long-document analysis at scale, internal developer tooling, anywhere you want maximum requests per dollar.
+
+**Tip:** For most tasks, Flash is the rational default in the DeepSeek family. Reserve V4 Pro for the hardest agentic coding tasks where the benchmark lift justifies the ~3–10× cost difference.
 
 ---
 
@@ -188,7 +335,7 @@ March 2026 upgrade to M2.5. The biggest surprise in this lineup — PinchBench 8
 - ~4× more requests per subscription period than GLM-5.1 — strong value for volume tasks
 
 **Weaknesses:**
-- ~200K context (not 1M; use MiMo-V2-Pro for larger codebases)
+- ~200K context (not 1M; use MiMo-V2.5-Pro or DeepSeek V4 for larger codebases)
 - Reads extensively before writing — median task duration longer than predecessors; can time out on time-sensitive tasks
 - 97% skill adherence is great, but simpler fixes than Opus 4.6 (e.g., basic SHA-256 vs proper scrypt for password hashing)
 - Produces 2.8M input tokens per task on average (higher than median) — consumes more context budget per task
@@ -211,7 +358,7 @@ The earlier version of M2.7 but notably has an 80.2% SWE-bench Verified score �
 - Spec-first approach produces clean initial scaffolding
 
 **Weaknesses:**
-- 205K context (not 1M; for larger codebases, use MiMo-V2-Pro's 1M)
+- 205K context (not 1M; for larger codebases, use MiMo-V2.5-Pro or DeepSeek V4)
 - No vision, no Agent Swarm
 - Hallucination: 36th percentile on Benchable.ai's benchmark — middle of the pack
 - Can "move the goalposts" — documented cases of secretly changing linter thresholds instead of fixing code. Always review changes carefully.
@@ -219,7 +366,7 @@ The earlier version of M2.7 but notably has an 80.2% SWE-bench Verified score �
 
 **Use when:** Bulk code review, automated PR generation, repetitive linting or formatting, anywhere you want maximum requests per dollar.
 
-**Tip:** Prefer M2.7 for complex tasks unless you're specifically optimizing for request count. Qwen3.5 Plus now offers the highest request volume (~12× GLM-5.1) with multimodal support — choose M2.5 only if you need its 80.2% SWE-bench at ~7× volume.
+**Tip:** Prefer M2.7 for complex tasks unless you're specifically optimizing for request count. DeepSeek V4 Flash now offers the highest request volume (~37× GLM-5.1) with 1M context and 79.0% SWE-bench — choose M2.5 only if you need its specific behavior or 80.2% score at ~7× volume.
 
 ---
 
@@ -250,35 +397,35 @@ The coding-focused upgrade to Qwen3.5 Plus, released March 2026. Built on a next
 
 **Use when:** Coding tasks requiring 1M context, agentic workflows with tool calling, terminal automation, front-end generation. Best alternative to GLM-5.1 when you need more context or more requests per period.
 
-**Tip:** Qwen3.6 Plus and MiMo-V2-Pro both offer 1M context. Choose Qwen3.6 Plus when coding quality matters most; choose MiMo-V2-Pro when hallucination grounding matters most.
+**Tip:** Qwen3.6 Plus and MiMo-V2.5-Pro both offer 1M context. Choose Qwen3.6 Plus when coding quality matters most; choose MiMo-V2.5-Pro when hallucination grounding matters most.
 
 ---
 
 ### Qwen3.5 Plus — Highest Volume, Multimodal
 **By: Alibaba (Qwen Team) | Params: 397B total / 17B active | Context: 262K native (up to 1M) | Output: 65K max | Multimodal: text + image + video**
 
-The highest-volume model in the OpenCode Go lineup, with ~12× more requests per month than GLM-5.1. Built on a Gated DeltaNet + MoE hybrid architecture activating only 17B of 397B parameters per token — making it the most token-efficient model available. Also the only model besides MiMo-V2-Omni and Kimi K2.5 with multimodal (image + video) support. Open-source under Apache 2.0.
+The highest-volume model in the OpenCode Go lineup (prior to DeepSeek V4 Flash), with ~12× more requests per month than GLM-5.1. Built on a Gated DeltaNet + MoE hybrid architecture activating only 17B of 397B parameters per token — making it the most token-efficient model available. Also the only model besides MiMo-V2-Omni and Kimi K2.5/K2.6 with multimodal (image + video) support. Open-source under Apache 2.0.
 
 **Strengths:**
-- Highest request volume in the lineup — 10,200 per 5 hours, 50,500 per month (~12× GLM-5.1)
+- High request volume — 10,200 per 5 hours, 50,500 per month (~12× GLM-5.1)
 - Multimodal: text + image + video understanding
 - SWE-bench Verified: 76.4% — solid coding capability
 - 1M context window (extended from 262K native)
-- 17B active params — most token-efficient model in the lineup
+- 17B active params — very token-efficient
 - IFBench: 76.5 — beats GPT-5.2 (75.4) on instruction following
 - Open-source (Apache 2.0) — can be self-hosted
 
 **Weaknesses:**
 - Overthinking: tends to burn reasoning tokens in circular loops, producing verbose outputs and slower effective speed
 - Inconsistent behavior across repeated runs — consistency score 9.0 with 2 flaky test failures
-- SWE-bench 76.4% trails MiniMax M2.5 (80.2%), Qwen3.6 Plus (78.8%), and GLM-5.1
+- SWE-bench 76.4% trails MiniMax M2.5 (80.2%), Qwen3.6 Plus (78.8%), GLM-5.1, and DeepSeek V4
 - Higher hallucination than MiMo-V2-Pro
 - Default temperature 0.6 — more exploratory and less decisive than Qwen3.6 Plus (0.2)
 - Superseded by Qwen3.6 Plus for most text-only coding tasks
 
 **Use when:** Maximum request volume, multimodal tasks (image+video+text), routine code generation and review, bulk operations.
 
-**Tip:** For text-only coding, prefer Qwen3.6 Plus — it's more decisive, more consistent, and scores higher on coding benchmarks. Use Qwen3.5 Plus when you need its multimodal capabilities or the highest possible request count.
+**Tip:** For text-only coding, prefer Qwen3.6 Plus or DeepSeek V4 — they're more decisive, more consistent, and score higher on coding benchmarks. Use Qwen3.5 Plus when you need its multimodal capabilities or the highest possible request count (though DeepSeek V4 Flash now beats it on volume).
 
 ---
 
@@ -290,31 +437,31 @@ Does the task involve audio or video understanding?
   └─ NO ↓
 
 Does the task involve images (screenshots, diagrams, video frames)?
-  └─ YES → Kimi K2.5 (front-end visual tasks) or Qwen3.5 Plus (image+video+text at high volume)
+  └─ YES → Kimi K2.6 (front-end/visual tasks, long-horizon) or Kimi K2.5 (legacy) or Qwen3.5 Plus (image+video+text at high volume)
   └─ NO ↓
 
 Is it math, AIME-style reasoning, or screenshot-to-frontend?
-  └─ YES → Kimi K2.5
+  └─ YES → Kimi K2.6 (best all-around) or Kimi K2.5
   └─ NO ↓
 
 Is it Q&A over retrieved web search content?
-  └─ YES → MiMo-V2-Pro (lowest hallucination)
+  └─ YES → MiMo-V2.5-Pro (lowest hallucination, open-source) or MiMo-V2-Pro
   └─ NO ↓
 
 Does the task require > 200K tokens of context?
-  └─ YES → MiMo-V2-Pro (1M ctx, lowest hallucination) or Qwen3.6 Plus (1M ctx, strong coding + tool use)
+  └─ YES → DeepSeek V4 Flash (1M ctx, highest volume, 79.0% SWE-bench) or MiMo-V2.5-Pro (1M ctx, lowest hallucination) or Qwen3.6 Plus (1M ctx, strong coding + tool use) or DeepSeek V4 Pro (1M ctx, frontier coding)
   └─ NO ↓
 
 Is it a complex, multi-file, or long-horizon coding task?
-  └─ YES → GLM-5.1 (let it run) or Qwen3.6 Plus (strong coding, more requests per period)
+  └─ YES → GLM-5.1 (let it run) or Kimi K2.6 (12h runs, 300 agents) or DeepSeek V4 Pro (frontier coding benchmarks)
   └─ NO ↓
 
 Is it general-purpose coding or a bug-fixing session where cost matters?
-  └─ YES → MiniMax M2.7 (strong all-rounder, great value)
+  └─ YES → MiniMax M2.7 (strong all-rounder, great value) or DeepSeek V4 Pro
   └─ NO ↓
 
 Is it a routine, high-volume, or simple coding task?
-  └─ YES → Qwen3.5 Plus (highest request volume) or MiniMax M2.5 (80.2% SWE-bench, ~7× requests)
+  └─ YES → DeepSeek V4 Flash (highest request volume, 1M ctx) or Qwen3.5 Plus (multimodal + volume) or MiniMax M2.5 (80.2% SWE-bench, ~7× requests)
   └─ NO → GLM-5.1 (default for anything ambiguous)
 ```
 
@@ -322,15 +469,16 @@ Is it a routine, high-volume, or simple coding task?
 
 ## Common Mistakes to Avoid
 
-- **Don't use Kimi K2.5 for web search Q&A.** Its -11 Omniscience score means it will confabulate instead of staying anchored to sources. Always verify its factual claims independently.
-- **Don't kill GLM-5.1 early.** Its value compounds over time. Let it run hundreds of turns on hard problems.
-- **Don't use MiMo-V2-Omni for text-only tasks.** It's the only model with audio understanding; route text tasks to Pro, GLM-5.1, or Qwen3.6 Plus for better results and more requests per period.
-- **Don't use MiniMax M2.5 for complex reasoning.** It's optimized for SWE-bench-style coding, not broad reasoning — and it can change linter thresholds instead of fixing code. Prefer M2.7 or Qwen3.6 Plus for anything complex.
-- **Don't assume MiniMax models have 1M context.** M2.5 is 205K and M2.7 is ~200K. Use MiMo-V2-Pro or Qwen3.6 Plus for codebases exceeding 200K tokens.
-- **Don't use Qwen3.5 Plus for text-only coding when Qwen3.6 Plus is available.** Qwen3.6 Plus fixes the overthinking problem, scores higher on SWE-bench (78.8% vs 76.4%), and has perfect consistency. Use 3.5 Plus only when you need multimodal support or maximum request volume.
-- **Don't trust Qwen3.6 Plus for factual API claims without verification.** Independent testing shows a 26.5% fabrication rate on API/language reasoning claims. Verify its code suggestions independently.
+- **Don't use Kimi K2.5/K2.6 for web search Q&A.** Their -11 Omniscience score means they will confabulate instead of staying anchored to sources. Always verify factual claims independently.
+- **Don't kill GLM-5.1 or Kimi K2.6 early.** Their value compounds over time. Let them run hundreds or thousands of turns on hard problems.
+- **Don't use MiMo-V2-Omni for text-only tasks.** It's the only model with audio understanding; route text tasks to Pro, GLM-5.1, or DeepSeek V4 for better results and more requests per period.
+- **Don't use MiniMax M2.5 for complex reasoning.** It's optimized for SWE-bench-style coding, not broad reasoning — and it can change linter thresholds instead of fixing code. Prefer M2.7, Qwen3.6 Plus, or DeepSeek V4 for anything complex.
+- **Don't assume MiniMax models have 1M context.** M2.5 is 205K and M2.7 is ~200K. Use MiMo-V2.5-Pro or DeepSeek V4 for codebases exceeding 200K tokens.
+- **Don't use Qwen3.5 Plus for text-only coding when Qwen3.6 Plus or DeepSeek V4 is available.** Qwen3.6 Plus fixes the overthinking problem, scores higher on SWE-bench (78.8% vs 76.4%), and has perfect consistency. DeepSeek V4 Flash offers 79.0% SWE-bench at vastly higher volume. Use 3.5 Plus only when you need multimodal support.
+- **Don't trust Qwen3.6 Plus or DeepSeek V4 for factual API claims without verification.** Independent testing shows 26.5% fabrication rate (Qwen3.6) and 94–96% hallucination rate (DeepSeek V4) on API/language reasoning claims. Verify code suggestions independently.
 - **GLM-5 ≠ GLM-5.1.** GLM-5.1 is a major post-training leap optimized for coding — don't treat them as interchangeable. Use GLM-5 only as a fallback.
 - **Don't rush MiniMax M2.7.** It reads extensively before writing. This deep reading catches issues other models miss but takes more time per task.
+- **Don't default to V4 Pro when V4 Flash will do.** Flash scores 79.0% vs Pro's 80.6% on SWE-bench — functionally equivalent for most tasks at ~3–10× lower cost. Reserve Pro for the hardest agentic workloads.
 
 ---
 
@@ -341,15 +489,19 @@ All models use **Mixture-of-Experts (MoE)** — only a fraction of parameters ac
 | Model | Total Params | Active Params | Context | Max Output |
 |---|---|---|---|---|
 | GLM-5.1 / GLM-5 | 744B | 40B | 200K | 128K |
-| Kimi K2.5 | 1T | 32B | 256K | — |
+| Kimi K2.6 / K2.5 | 1T | 32B | 256–262K | — |
 | MiMo-V2-Pro | 1T | 42B | 1M | — |
+| MiMo-V2.5-Pro | 1.02T | 42B | 1M | — |
+| MiMo-V2.5 | — | — | 256K | — |
 | MiMo-V2-Omni | — | — | ~262K | — |
 | MiniMax M2.7 | 230B | 10B | ~200K | 128K |
 | MiniMax M2.5 | 230B | 10B | 205K | — |
 | Qwen3.6 Plus | — | — | 1M (256K native) | 65K |
 | Qwen3.5 Plus | 397B | 17B | 262K (up to 1M) | 65K |
+| DeepSeek V4 Pro | 1.6T | 49B | 1M | 384K |
+| DeepSeek V4 Flash | 284B | 13B | 1M | 384K |
 
-MoE means inference cost scales with *active* parameters, not total — which is how these models achieve frontier performance at subscription pricing. MiniMax's 10B and Qwen3.5 Plus's 17B active params make them the most token-efficient in the lineup, while GLM-5.1's 40B active params provides deeper reasoning at higher per-token cost.
+MoE means inference cost scales with *active* parameters, not total — which is how these models achieve frontier performance at subscription pricing. MiniMax's 10B, Qwen3.5 Plus's 17B, and DeepSeek V4 Flash's 13B active params make them the most token-efficient in the lineup, while GLM-5.1's 40B and DeepSeek V4 Pro's 49B active params provide deeper reasoning at higher per-token cost.
 
 ---
 
@@ -357,14 +509,14 @@ MoE means inference cost scales with *active* parameters, not total — which is
 
 For maximum effectiveness within the OpenCode Go subscription, route intelligently based on both task type and budget:
 
-**Daily driver (most tasks):** MiniMax M2.7 — strong all-around, ~4× more requests than GLM-5.1, reads deeply before writing. Qwen3.6 Plus is a strong alternative with 1M context and better coding benchmarks.
+**Daily driver (most tasks):** MiniMax M2.7 — strong all-around, ~4× more requests than GLM-5.1, reads deeply before writing. DeepSeek V4 Flash is a strong alternative with 1M context and massive volume.
 
-**Hard problems (let it run):** GLM-5.1 — best coding model in the lineup for complex, multi-file work. Sustains improvement over hundreds of rounds.
+**Hard problems (let it run):** GLM-5.1 — best coding model in the lineup for complex, multi-file work. Sustains improvement over hundreds of rounds. Kimi K2.6 for 12-hour autonomous runs with swarm coordination. DeepSeek V4 Pro for frontier coding benchmarks.
 
-**Big codebases or source-grounded Q&A:** MiMo-V2-Pro — 1M context is the only option when your codebase exceeds 200K tokens. Lowest hallucination rate for staying anchored to facts.
+**Big codebases or source-grounded Q&A:** MiMo-V2.5-Pro — 1M context is the only option when your codebase exceeds 200K tokens. Lowest hallucination rate for staying anchored to facts. DeepSeek V4 Flash for 1M context at highest volume.
 
-**Frontend or visual tasks:** Kimi K2.5 (screenshots → code) or MiMo-V2-Omni (general multimodal).
+**Frontend or visual tasks:** Kimi K2.6 (screenshots → code, 12h runs) or MiMo-V2-Omni (general multimodal).
 
-**Bulk/high-volume tasks:** Qwen3.5 Plus — highest request volume in the lineup (~12× GLM-5.1), multimodal support, 76.4% SWE-bench. MiniMax M2.5 is close behind with 80.2% SWE-bench at ~7× volume.
+**Bulk/high-volume tasks:** DeepSeek V4 Flash — highest request volume in the lineup (~37× GLM-5.1), 1M context, 79.0% SWE-bench. Qwen3.5 Plus is close behind with multimodal support. MiniMax M2.5 offers 80.2% SWE-bench at ~7× volume.
 
-**Fallback:** GLM-5 when GLM-5.1 is rate-limited. Qwen3.6 Plus when GLM-5.1 is rate-limited but you still need strong coding (78.8% SWE-bench, 61.6% Terminal-Bench).
+**Fallback:** GLM-5 when GLM-5.1 is rate-limited. DeepSeek V4 Pro when GLM-5.1 is rate-limited but you still need strong coding (80.6% SWE-bench, 67.9% Terminal-Bench). Kimi K2.6 when you need long-horizon agentic work.
