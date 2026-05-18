@@ -26,7 +26,7 @@ skills/
 | Skill | Description |
 |-------|-------------|
 | [opencode-go-models](skills/opencode-go-models/) | Model routing guide for OpenCode Go subscription — quickly pick the right model (GLM-5.1, MiMo-V2-Pro, Kimi K2.5, etc.) for any task |
-| [uv-python](skills/uv-python/) | Use uv (by Astral) for Python project management — covers uv init, add, remove, sync, run, lock, build, publish, and more |
+| [uv-python](skills/uv-python/) | Use `uv` instead of pip/python/venv — run scripts with `uv run`, add deps with `uv add`, inline script metadata for standalone scripts |
 
 ### Creating a New Skill
 
@@ -63,6 +63,7 @@ extensions/
 | Extension | Description |
 |-----------|-------------|
 | [answer](extensions/answer.ts) | Extract questions from assistant responses into an interactive Q&A — use `/answer` command or `Ctrl+.` shortcut |
+| [uv](extensions/uv.ts) | Redirect Python tooling to uv — blocks pip/poetry/venv and redirects python through `uv run` |
 
 ### Creating a New Extension
 
