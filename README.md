@@ -71,7 +71,7 @@ extensions/
 2. Export a default function that receives `ExtensionAPI`:
 
 ```typescript
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 export default function (pi: ExtensionAPI) {
   pi.registerCommand("hello", {
@@ -87,17 +87,26 @@ See the [pi extensions documentation](https://github.com/badlogic/pi-coding-agen
 
 ## Installation
 
-To use these skills and extensions, add this directory to your pi settings or symlink to `~/.pi/agent/skills/`:
+Symlink the repo directories into `~/.pi/agent/` so pi auto-loads everything. This way, adding a new extension or skill to the repo automatically makes it available in pi.
 
 ```bash
-ln -s /path/to/pi-coding-agent-skills ~/.pi/agent/skills/pi-coding-agent-skills
+REPO=/path/to/pi-coding-agent-skills
+
+# Replace existing directories with symlinks
+rm -rf ~/.pi/agent/extensions    # back up any standalone extensions first!
+rm -rf ~/.pi/agent/skills
+ln -s $REPO/extensions ~/.pi/agent/extensions
+ln -s $REPO/skills ~/.pi/agent/skills
+ln -s $REPO/intercepted-commands ~/.pi/agent/intercepted-commands
 ```
 
-Or add to `.pi/settings.json`:
+> **Note:** The `intercepted-commands` symlink is required by the `uv` extension, which resolves shim paths relative to `__dirname/../intercepted-commands`. Without it, the PATH-based interception won't work.
+
+If you have non-repo extensions (e.g., `omarchy-system-theme.ts`), move them to a separate directory and reference them in `settings.json`:
 
 ```json
 {
-  "skills": ["/home/pmalla/Work/pi-coding-agent-skills"]
+  "extensions": ["/home/pmalla/.pi/agent/extensions-local/omarchy-system-theme.ts"]
 }
 ```
 
