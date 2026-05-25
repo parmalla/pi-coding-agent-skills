@@ -2,7 +2,8 @@
  * Tokens Per Second (TPS) Extension
  *
  * Displays real-time token generation speed during assistant streaming
- * and final stats when a message completes.
+ * and final stats when a message completes. Thinking/reasoning content
+ * is included in the token count alongside output text.
  *
  * Usage:
  *   /tps              Toggle display on/off
@@ -11,7 +12,7 @@
  *   /tps last         Show stats from the last completed message
  */
 
-import type { AssistantMessage } from "@earendil-works/pi-ai";
+import type { AssistantMessage, ContentBlock } from "@earendil-works/pi-ai";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 
 interface StreamStats {
@@ -28,7 +29,6 @@ interface CompletedStats {
 	model?: string;
 }
 
-// Rough token estimate: ~4 chars per token for typical text
 function estimateTokens(text: string): number {
 	return Math.max(0, Math.ceil(text.length / 4));
 }
@@ -40,10 +40,16 @@ function formatTps(tps: number): string {
 	return `${tps.toFixed(2)}`;
 }
 
-function getTextContent(message: AssistantMessage): string {
+function getAllText(message: AssistantMessage): string {
 	return message.content
-		.filter((c): c is { type: "text"; text: string } => c.type === "text")
-		.map((c) => c.text)
+		.map((c: ContentBlock) => {
+			if (c.type === "text") return c.text;
+			if ((c as any).type === "thinking" && typeof (c as any).thinking === "string")
+				return (c as any).thinking;
+			if ((c as any).type === "reasoning" && typeof (c as any).reasoning === "string")
+				return (c as any).reasoning;
+			return "";
+		})
 		.join("");
 }
 
@@ -66,17 +72,16 @@ export default function (pi: ExtensionAPI) {
 			return;
 		}
 
+		const theme = ctx.ui.theme;
+
 		if (currentStream) {
 			const elapsed = (Date.now() - currentStream.startTime) / 1000;
 			const tps = elapsed > 0 ? currentStream.estimatedTokens / elapsed : 0;
-			const theme = ctx.ui.theme;
 			ctx.ui.setStatus(
 				"tps",
-				theme.fg("accent", `⚡ ${formatTps(tps)} tok/s`) +
-					theme.fg("dim", ` · ${currentStream.estimatedTokens}t`),
+				theme.fg("accent", `⚡ ${formatTps(tps)} tok/s`) + theme.fg("dim", ` · ${currentStream.estimatedTokens}t`),
 			);
 		} else if (lastStats) {
-			const theme = ctx.ui.theme;
 			ctx.ui.setStatus(
 				"tps",
 				theme.fg("success", `✓ ${formatTps(lastStats.tps)} tok/s`) +
@@ -90,59 +95,64 @@ export default function (pi: ExtensionAPI) {
 	pi.on("message_start", async (event, ctx) => {
 		if (event.message.role !== "assistant") return;
 		clearStatusTimer();
-		currentStream = {
-			startTime: Date.now(),
-			lastUpdateTime: Date.now(),
-			estimatedTokens: 0,
-			lastTextLength: 0,
-		};
+		currentStream = { startTime: Date.now(), lastUpdateTime: Date.now(), estimatedTokens: 0, lastTextLength: 0 };
 		updateStatus(ctx);
 	});
 
 	pi.on("message_update", async (event, ctx) => {
 		if (!currentStream || event.message.role !== "assistant") return;
-
-		const text = getTextContent(event.message);
+		const text = getAllText(event.message);
 		const newChars = text.length - currentStream.lastTextLength;
 		if (newChars > 0) {
 			currentStream.estimatedTokens += estimateTokens(text.slice(currentStream.lastTextLength));
 			currentStream.lastTextLength = text.length;
 			currentStream.lastUpdateTime = Date.now();
+			updateStatus(ctx);
 		}
-		updateStatus(ctx);
 	});
 
 	pi.on("message_end", async (event, ctx) => {
 		if (!currentStream || event.message.role !== "assistant") return;
 
-		const durationMs = Date.now() - currentStream.startTime;
+		const durationMs = Math.max(1, currentStream.lastUpdateTime - currentStream.startTime);
 		const durationSec = durationMs / 1000;
 
 		const message = event.message as AssistantMessage;
-		const actualTokens = message.usage?.output;
-		const tokens = actualTokens && actualTokens > 0 ? actualTokens : currentStream.estimatedTokens;
+
+		// Compute tokens from the full final message so thinking/reasoning blocks
+		// that may have arrived are guaranteed to be included. This matches the
+		// same estimateTokens() function used during streaming.
+		const tokens = estimateTokens(getAllText(message));
 
 		const tps = durationSec > 0 ? tokens / durationSec : 0;
-		lastStats = {
-			tps,
-			tokens,
-			durationMs,
-			model: message.model,
-		};
+		lastStats = { tps, tokens, durationMs, model: message.model };
 
 		currentStream = null;
 		updateStatus(ctx);
 
-		// Auto-clear the status after 30 seconds of inactivity
 		clearStatusTimer();
 		statusTimer = setTimeout(() => {
 			lastStats = null;
-			ctx.ui.setStatus("tps", undefined);
 		}, 30000);
 	});
 
 	pi.on("agent_start", async (_event, ctx) => {
-		// Reset last stats when a new agent run starts
+		lastStats = null;
+		clearStatusTimer();
+		updateStatus(ctx);
+	});
+
+	pi.on("session_shutdown", async () => {
+		// Clean up timers and state so no stale ctx is accessed after
+		// session replacement (new/resume/fork) or reload.
+		clearStatusTimer();
+		currentStream = null;
+		lastStats = null;
+	});
+
+	pi.on("session_start", async (_event, ctx) => {
+		// Fresh session — reset all streaming state and clear stale status.
+		currentStream = null;
 		lastStats = null;
 		clearStatusTimer();
 		updateStatus(ctx);
@@ -182,20 +192,15 @@ export default function (pi: ExtensionAPI) {
 			}
 
 			// Toggle if no arg
-			if (!cmd) {
-				enabled = !enabled;
-				if (enabled) {
-					updateStatus(ctx);
-					ctx.ui.notify("TPS display enabled", "info");
-				} else {
-					clearStatusTimer();
-					ctx.ui.setStatus("tps", undefined);
-					ctx.ui.notify("TPS display disabled", "info");
-				}
-				return;
+			enabled = !enabled;
+			if (enabled) {
+				updateStatus(ctx);
+				ctx.ui.notify("TPS display enabled", "info");
+			} else {
+				clearStatusTimer();
+				ctx.ui.setStatus("tps", undefined);
+				ctx.ui.notify("TPS display disabled", "info");
 			}
-
-			ctx.ui.notify("Usage: /tps [on|off|last]", "error");
 		},
 	});
 }
