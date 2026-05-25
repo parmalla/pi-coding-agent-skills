@@ -103,6 +103,7 @@ pi-coding-agent-skills/
 | Extension | Purpose | Key Details |
 |-----------|---------|-------------|
 | `answer.ts` | Extract questions from assistant messages into interactive Q&A | Uses `complete()` for LLM extraction, custom `QnAComponent` TUI, prefers OpenCode Go models |
+| `tokens-per-second.ts` | Display real-time token generation speed during streaming | Tracks `message_start`/`message_update`/`message_end` events, shows TPS in status bar, `/tps` command to toggle |
 | `uv.ts` | Redirect Python tooling to uv equivalents | `createBashTool` with `commandPrefix` (PATH shims) + `spawnHook` (regex block), intercepts pip/pip3/poetry and python -m pip/venv/py_compile |
 
 ## Testing

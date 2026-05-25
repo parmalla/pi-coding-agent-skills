@@ -63,6 +63,7 @@ extensions/
 | Extension | Description |
 |-----------|-------------|
 | [answer](extensions/answer.ts) | Extract questions from assistant responses into an interactive Q&A — use `/answer` command or `Ctrl+.` shortcut |
+| [tokens-per-second](extensions/tokens-per-second.ts) | Display real-time token generation speed (TPS) during assistant streaming — use `/tps` command to toggle or show last stats |
 | [uv](extensions/uv.ts) | Redirect Python tooling to uv — blocks pip/poetry/venv and redirects python through `uv run` |
 
 ### Creating a New Extension
