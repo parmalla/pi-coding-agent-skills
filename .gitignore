@@ -13,3 +13,7 @@ Thumbs.db
 # Environment
 .env
 .env.local
+
+# Omarchy system-installed skills (symlinks to /usr/share/omarchy/)
+skills/omarchy
+skills/diagnose-crash
