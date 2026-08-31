@@ -1,9 +1,18 @@
 ---
 name: opencode-go-models
-description: Model routing guide for the Pi coding agent OpenCode Go subscription. Use this skill whenever the user asks which model to use, wants to switch models, is picking a model for a task, mentions any of the available models by name (GLM-5, GLM-5.1, Kimi K2.5, Kimi K2.6, MiMo-V2-Pro, MiMo-V2.5-Pro, MiMo-V2.5, MiMo-V2-Omni, MiniMax M2.5, MiniMax M2.7, Qwen3.5 Plus, Qwen3.6 Plus, DeepSeek V4 Pro, DeepSeek V4 Flash), or describes a task and implicitly needs a model recommendation. Always consult this before suggesting a model.
+description: Model routing guide for the Pi coding agent OpenCode Go subscription. Use this skill whenever the user asks which model to use, wants to switch models, is picking a model for a task, mentions any of the available models by name (GLM-5.3, GLM-5.3-Flash, Kimi K3, Kimi K2.7, MiMo-V2.5, MiniMax M3, Qwen3.8, DeepSeek V4, Grok 4.6, Hy3/Hy4, LongCat, Muse Spark, etc.), or describes a task and implicitly needs a model recommendation. Always consult this before suggesting a model. On activation, automatically fetches the latest model catalog from https://opencode.ai/zen/go/v1/models and https://opencode.ai/docs/go/ to stay up to date.
+allowed-tools: Bash(bash skills/opencode-go-models/scripts/fetch-models.sh *) Bash(curl *) Bash(jq *)
 ---
 
 # OpenCode Go — Model Routing Guide
+
+> **Auto-refresh on activation:** When this skill is activated, **always fetch the latest catalog** before routing. The model list, pricing, and limits change frequently.
+>
+> ```bash
+> bash skills/opencode-go-models/scripts/fetch-models.sh /tmp/opencode-go
+> curl -fsSL https://opencode.ai/zen/go/v1/models | jq -r '.data[].id' | sort
+> ```
+> For full pricing/limits/privacy see the live docs: `https://opencode.ai/docs/go/` and the local snapshot `reference/models.md` (refresh with the script above). If the fetch fails, fall back to `reference/models.md` and note that data may be stale.
 
 This skill helps route tasks to the right model in the Pi coding agent OpenCode Go subscription. All models listed here are available under the subscription. Every model uses a Mixture-of-Experts (MoE) architecture, activating only a fraction of total parameters per token — which is why frontier-grade intelligence is available at this price point.
 
@@ -11,31 +20,44 @@ This skill helps route tasks to the right model in the Pi coding agent OpenCode 
 
 ## OpenCode Go Subscription Details
 
-- **Price:** $5 first month, then $10/month
-- **Usage limits:** $12 per 5 hours / $30 per week / $60 per month (in dollar-equivalent usage)
-- **Privacy:** Zero-retention policy; data not used for training
-- **Endpoints:** Hosted in US, EU, and Singapore for stable global access
+- **Price:** $10/month (cancel anytime; top up credit if needed). Works with OpenCode or any agent via API key.
+- **Usage limits:** $12 per 5 hours / $30 per week / $60 per month (in dollar-equivalent usage — see pricing table)
+- **Privacy:** Zero-retention by default (see `reference/models.md` for per-model retention; exceptions: Grok 4.6 / GPT 5.6 Luna = 30 days, Muse Spark 1.2 Contributor = training opt-in)
+- **Endpoints:** `https://opencode.ai/zen/go/v1/...` — fetch live catalog via `https://opencode.ai/zen/go/v1/models`
+- **Live catalog:** Run `bash skills/opencode-go-models/scripts/fetch-models.sh` on activation — do NOT rely solely on the snapshot below.
 
-### Approximate Requests per Limit Period
+### Approximate Requests per Limit Period (snapshot — always verify live)
+
+> Snapshot from 2026-08-31 docs. **Fetch live before routing:** `curl -fsSL https://opencode.ai/docs/go/` for current pricing.
+> Full table with pricing is in `reference/models.md` (auto-refreshed via `scripts/fetch-models.sh`).
 
 | Model | per 5 hours | per week | per month |
 |---|---|---|---|
+| GLM-5.3-Flash (2× promo) | 1,580 | 3,950 | 7,900 |
+| GLM-5.3 | 220 | 540 | 1,080 |
+| GLM-5.2 | 880 | 2,150 | 4,300 |
 | GLM-5.1 | 880 | 2,150 | 4,300 |
-| GLM-5 | 1,150 | 2,880 | 5,750 |
-| Kimi K2.5 | 1,850 | 4,630 | 9,250 |
+| Kimi K3 | 110 | 250 | 490 |
+| Kimi K2.7 Code | 1,350 | 3,380 | 6,750 |
 | Kimi K2.6 | 1,150 | 2,880 | 5,750 |
-| MiMo-V2-Pro | 1,290 | 3,225 | 6,450 |
-| MiMo-V2.5-Pro | 1,290 | 3,225 | 6,450 |
-| MiMo-V2-Omni | 2,150 | 5,450 | 10,900 |
-| MiMo-V2.5 (≤ 256K) | 2,150 | 5,450 | 10,900 |
-| Qwen3.6 Plus | 3,300 | 8,200 | 16,300 |
+| LongCat-2.0 | 11,400 | 28,600 | 57,200 |
+| MiMo-V2.5 | 30,100 | 75,200 | 150,400 |
+| MiMo-V2.5-Pro | 3,250 | 8,150 | 16,300 |
+| MiniMax M3 | 3,200 | 8,000 | 16,000 |
 | MiniMax M2.7 | 3,400 | 8,500 | 17,000 |
-| DeepSeek V4 Pro | 3,450 | 8,550 | 17,150 |
-| MiniMax M2.5 | 6,300 | 15,900 | 31,800 |
-| Qwen3.5 Plus | 10,200 | 25,200 | 50,500 |
-| DeepSeek V4 Flash | 31,650 | 79,050 | 158,150 |
+| Qwen3.8 Flash | 5,400 | 13,500 | 27,000 |
+| Qwen3.8 Max | 160 | 400 | 810 |
+| Qwen3.7 Plus | 4,300 | 10,800 | 21,600 |
+| Qwen3.7 Max | 340 | 840 | 1,690 |
+| Qwen3.6 Plus | 3,300 | 8,200 | 16,300 |
+| DeepSeek V4 Pro | 1,050 | 2,600 | 5,200 |
+| DeepSeek V4 Flash | 7,600 | 18,900 | 37,800 |
+| DeepSeek V4 Flash Vision Exp | 3,800 | 9,450 | 18,900 |
+| Muse Spark 1.2 Contributor | 45,300 | 113,300 | 226,600 |
+| Hy3 | 4,300 | 10,750 | 21,500 |
+| Hy4 preview | 1,350 | 3,380 | 6,770 |
 
-Qwen3.5 Plus and DeepSeek V4 Flash give the highest volume in the lineup. Use DeepSeek V4 Flash, Qwen3.5 Plus, or MiniMax M2.5 for high-volume tasks; use GLM-5.1, Kimi K2.6, or DeepSeek V4 Pro for hard problems.
+Deprecated (still in API, may be removed — use replacements): GLM-5 → GLM-5.3, Kimi K2.5 → K2.7/K3, MiniMax M2.5 → M3, MiMo V2 Pro/Omni → V2.5 line, Qwen3.5 Plus → Qwen3.6+.
 
 ---
 
