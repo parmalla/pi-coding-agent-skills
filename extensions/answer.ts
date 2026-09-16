@@ -69,32 +69,43 @@ Example output:
   ]
 }`;
 
-// OpenCode Go model IDs for question extraction
-// Prefer cheapest models (max requests per subscription period)
+// OpenCode Go model IDs for question extraction, fastest+cheapest first.
+// Pricing per 1M tokens (input/output/cached-read), monthly limit:
+//   GLM-5.3-Flash  $0.15 / $0.50 / $0.016   ($60) - non-reasoning, fastest
+//   MiMo-V2.5      $0.14 / $0.28 / $0.0028  ($60) - reasoning model, needs
+//     thinkingLevel off; gateway flakiness can trigger slow retry backoff
+//   LongCat-2.0    $0.30 / $1.20 / $0.006   ($60)
+//   DeepSeek-V4-Flash $0.30 / $1.20 / $0.006 (peak 2x) - slow at peak hours
+// Extraction sends a large input with a tiny output, so input price dominates;
+// GLM-5.3-Flash is effectively the same cost as MiMo but faster and stable.
 const OPENCODE_GO_PROVIDER = "opencode-go";
-const PREFERRED_MODEL_IDS = ["minimax-m2.5", "minimax-m2.7"];
+const PREFERRED_MODEL_IDS = ["glm-5.3-flash", "mimo-v2.5", "longcat-2.0", "deepseek-v4-flash"];
 
 /**
- * Find the first available OpenCode Go model, otherwise fallback to current model.
- * OpenCode Go models are ideal for extraction tasks as they're cost-effective.
+ * Build the candidate list for extraction: available OpenCode Go models in
+ * cheapest-first order, with the current model as final fallback.
  */
-async function selectExtractionModel(
+async function selectExtractionCandidates(
 	currentModel: Model<Api>,
 	modelRegistry: ModelRegistry,
-): Promise<Model<Api>> {
-	// Try each preferred model in order
+): Promise<Model<Api>[]> {
+	const candidates: Model<Api>[] = [];
+
 	for (const modelId of PREFERRED_MODEL_IDS) {
 		const model = modelRegistry.find(OPENCODE_GO_PROVIDER, modelId);
-		if (model) {
-			const auth = await modelRegistry.getApiKeyAndHeaders(model);
-			if (auth.ok) {
-				return model;
-			}
+		if (!model) continue;
+		const auth = await modelRegistry.getApiKeyAndHeaders(model);
+		if (auth.ok) {
+			candidates.push(model);
 		}
 	}
 
-	// No OpenCode Go model available, use current model
-	return currentModel;
+	// Fall back to the current model if no preferred model is usable
+	if (!candidates.some((m) => m.id === currentModel.id)) {
+		candidates.push(currentModel);
+	}
+
+	return candidates;
 }
 
 /**
@@ -443,46 +454,100 @@ export default function (pi: ExtensionAPI) {
 				return;
 			}
 
-			// Select the best model for extraction (prefer Codex mini, then haiku)
-			const extractionModel = await selectExtractionModel(ctx.model, ctx.modelRegistry);
+			// Build candidate list: cheapest OpenCode Go models first, current model as fallback
+			const candidates = await selectExtractionCandidates(ctx.model, ctx.modelRegistry);
 
 			// Run extraction with loader UI
+			const startedAt = Date.now();
+			let usedModel: Model<Api> | null = null;
 			const extractionResult = await ctx.ui.custom<ExtractionResult | null>((tui, theme, _kb, done) => {
-				const loader = new BorderedLoader(tui, theme, `Extracting questions using ${extractionModel.id}...`);
+				const loader = new BorderedLoader(
+					tui,
+					theme,
+					`Extracting questions using ${candidates[0]?.id ?? ctx.model.id} (with fallbacks)...`,
+				);
 				loader.onAbort = () => done(null);
 
 				const doExtract = async () => {
-					const auth = await ctx.modelRegistry.getApiKeyAndHeaders(extractionModel);
-					if (!auth.ok) {
-						throw new Error(auth.error);
+					// OpenCode Go requires a stable x-opencode-session header for routing.
+					// pi injects it on its own agent requests, but not on direct complete()
+					// calls from extensions — add it here.
+					const sessionId = ctx.sessionManager.getSessionId() ?? crypto.randomUUID();
+					const errors: string[] = [];
+
+					for (const candidate of candidates) {
+						try {
+							const auth = await ctx.modelRegistry.getApiKeyAndHeaders(candidate);
+							if (!auth.ok) {
+								errors.push(`${candidate.id}: auth failed (${auth.error})`);
+								continue;
+							}
+
+							const userMessage: UserMessage = {
+								role: "user",
+								content: [{ type: "text", text: lastAssistantText! }],
+								timestamp: Date.now(),
+							};
+
+							const response = await complete(
+								candidate,
+								{ systemPrompt: SYSTEM_PROMPT, messages: [userMessage] },
+								{
+									apiKey: auth.apiKey,
+									headers: { ...auth.headers, "x-opencode-session": sessionId },
+									// Extraction is a tiny structured task - skip reasoning and cap
+									// output so reasoning-heavy models (MiMo, MiniMax) stay fast
+									thinkingLevel: "off",
+									maxTokens: 2048,
+									// Fail fast - the candidate loop below already retries
+									// with the next model, so avoid long backoff here
+									maxRetries: 0,
+									signal: loader.signal,
+								},
+							);
+
+							if (response.stopReason === "aborted") {
+								return null;
+							}
+
+							if (response.stopReason === "error") {
+								errors.push(
+									`${candidate.id}: ${response.errorMessage ?? "unknown error"}`,
+								);
+								continue;
+							}
+
+							const responseText = response.content
+								.filter((c): c is { type: "text"; text: string } => c.type === "text")
+								.map((c) => c.text)
+								.join("\n");
+
+							const parsed = parseExtractionResult(responseText);
+							if (parsed === null) {
+								const snippet = responseText.trim().slice(0, 200) || "(empty text content)";
+								errors.push(`${candidate.id}: failed to parse response, raw: ${snippet}`);
+								continue;
+							}
+
+							usedModel = candidate;
+							return parsed;
+						} catch (err) {
+							errors.push(`${candidate.id}: ${err instanceof Error ? err.message : String(err)}`);
+						}
 					}
-					const userMessage: UserMessage = {
-						role: "user",
-						content: [{ type: "text", text: lastAssistantText! }],
-						timestamp: Date.now(),
-					};
 
-					const response = await complete(
-						extractionModel,
-						{ systemPrompt: SYSTEM_PROMPT, messages: [userMessage] },
-						{ apiKey: auth.apiKey, headers: auth.headers, signal: loader.signal },
-					);
-
-					if (response.stopReason === "aborted") {
-						return null;
-					}
-
-					const responseText = response.content
-						.filter((c): c is { type: "text"; text: string } => c.type === "text")
-						.map((c) => c.text)
-						.join("\n");
-
-					return parseExtractionResult(responseText);
+					throw new Error(`All extraction models failed — ${errors.join(" | ")}`);
 				};
 
 				doExtract()
 					.then(done)
-					.catch(() => done(null));
+					.catch((err) => {
+						ctx.ui.notify(
+							`Extraction failed: ${err instanceof Error ? err.message : String(err)}`,
+							"error",
+						);
+						done(null);
+					});
 
 				return loader;
 			});
@@ -491,6 +556,11 @@ export default function (pi: ExtensionAPI) {
 				ctx.ui.notify("Cancelled", "info");
 				return;
 			}
+
+			ctx.ui.notify(
+				`Extracted ${extractionResult.questions.length} question(s) with ${usedModel?.id ?? "?"} in ${((Date.now() - startedAt) / 1000).toFixed(1)}s`,
+				"info",
+			);
 
 			if (extractionResult.questions.length === 0) {
 				ctx.ui.notify("No questions found in the last message", "info");
