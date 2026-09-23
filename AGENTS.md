@@ -93,7 +93,7 @@ pi-coding-agent-skills/
 
 | Skill | Purpose | Key Details |
 |-------|---------|-------------|
-| `uv-python` | Use `uv` instead of pip/python/venv | SKILL.md (quick ref + blocked commands table), reference docs (scripts.md, build.md) — pure markdown, no scripts |
+| `uv-python` | Use `uv` instead of pip/python/venv | SKILL.md (policy + blocked commands table + pointers to `uv --help`), reference docs (scripts.md, build.md) — pure markdown, no scripts |
 | `marimo-pair` | Pair-program with live marimo notebooks | Bash scripts for server discovery + code execution, reference docs for marimo internals — git submodule |
 
 ## Current Extensions Summary
