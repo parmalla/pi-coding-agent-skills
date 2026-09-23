@@ -25,7 +25,6 @@ skills/
 
 | Skill | Description |
 |-------|-------------|
-| [opencode-go-models](skills/opencode-go-models/) | Model routing guide for OpenCode Go subscription — quickly pick the right model (GLM-5.1, MiMo-V2-Pro, Kimi K2.5, etc.) for any task |
 | [uv-python](skills/uv-python/) | Use `uv` instead of pip/python/venv — run scripts with `uv run`, add deps with `uv add`, inline script metadata for standalone scripts |
 
 ### Creating a New Skill

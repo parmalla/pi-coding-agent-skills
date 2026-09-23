@@ -25,7 +25,6 @@ pi-coding-agent-skills/
 │   ├── python             ← Blocks -m pip/venv/py_compile, redirects through uv run
 │   └── python3            ← Same as python
 ├── skills/                 ← Skill directories
-│   ├── opencode-go-models/ ← SKILL.md (model routing guide)
 │   ├── uv-python/          ← SKILL.md + reference docs (scripts, build)
 │   └── marimo-pair/        ← Git submodule — DO NOT edit in-tree directly
 │       ├── SKILL.md
@@ -94,7 +93,6 @@ pi-coding-agent-skills/
 
 | Skill | Purpose | Key Details |
 |-------|---------|-------------|
-| `opencode-go-models` | Model routing for OpenCode Go subscription | 14 models, decision flowchart, benchmark data — pure markdown, no scripts |
 | `uv-python` | Use `uv` instead of pip/python/venv | SKILL.md (quick ref + blocked commands table), reference docs (scripts.md, build.md) — pure markdown, no scripts |
 | `marimo-pair` | Pair-program with live marimo notebooks | Bash scripts for server discovery + code execution, reference docs for marimo internals — git submodule |
 
