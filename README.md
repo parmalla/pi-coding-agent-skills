@@ -26,6 +26,7 @@ skills/
 | Skill | Description |
 |-------|-------------|
 | [uv-python](skills/uv-python/) | Use `uv` instead of pip/python/venv — run scripts with `uv run`, add deps with `uv add`, inline script metadata for standalone scripts |
+| [pi-web-access](skills/pi-web-access/) | Set up and key the pi-web-access extension — one-file provider credentials, free-tier key checklist, `web-search.json` template, and status helper |
 
 ### Creating a New Skill
 
@@ -101,6 +102,24 @@ ln -s $REPO/intercepted-commands ~/.pi/agent/intercepted-commands
 ```
 
 > **Note:** The `intercepted-commands` symlink is required by the `uv` extension, which resolves shim paths relative to `__dirname/../intercepted-commands`. Without it, the PATH-based interception won't work.
+
+### pi-web-access setup
+
+The `pi-web-access` skill ships an idempotent installer for the web-search
+provider configuration. After symlinking the repo, run:
+
+```bash
+~/.pi/agent/skills/pi-web-access/scripts/install.sh
+```
+
+It renders `web-search.json` into the pi config dir, copies the `get-web-key.sh`
+resolver and `web-keys-status.sh` helper, and creates `web-search-keys.env` from
+a template (never overwriting existing keys). See
+[skills/pi-web-access/SKILL.md](skills/pi-web-access/SKILL.md) and the
+[provider matrix](skills/pi-web-access/reference/providers.md).
+
+Secrets stay in `web-search-keys.env`; `web-search.json` holds only `!command`
+references to the resolver, so it is safe to copy between machines.
 
 If you have non-repo extensions (e.g., `omarchy-system-theme.ts`), move them to a separate directory and reference them in `settings.json`:
 

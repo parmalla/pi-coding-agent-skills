@@ -14,6 +14,14 @@ Thumbs.db
 .env
 .env.local
 
+# pi-web-access secrets (installer copies templates to the pi config dir)
+web-search-keys.env
+web-search.json
+web-search.json.bak
+
 # Omarchy system-installed skills (symlinks to /usr/share/omarchy/)
 skills/omarchy
 skills/diagnose-crash
+
+# Local key files accidentally created inside the repo
+skills/pi-web-access/**/web-search-keys.env

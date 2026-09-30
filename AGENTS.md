@@ -26,6 +26,11 @@ pi-coding-agent-skills/
 │   └── python3            ← Same as python
 ├── skills/                 ← Skill directories
 │   ├── uv-python/          ← SKILL.md + reference docs (scripts, build)
+│   ├── pi-web-access/      ← pi-web-access extension setup (installer + templates)
+│   │   ├── SKILL.md
+│   │   ├── scripts/        ← install.sh, get-web-key.sh, web-keys-status.sh
+│   │   ├── assets/         ← web-search.json + web-search-keys.env templates
+│   │   └── reference/      ← Provider matrix + signup links
 │   └── marimo-pair/        ← Git submodule — DO NOT edit in-tree directly
 │       ├── SKILL.md
 │       ├── scripts/        ← Bash scripts (discover-servers.sh, execute-code.sh)
@@ -94,6 +99,7 @@ pi-coding-agent-skills/
 | Skill | Purpose | Key Details |
 |-------|---------|-------------|
 | `uv-python` | Use `uv` instead of pip/python/venv | SKILL.md (policy + blocked commands table + pointers to `uv --help`), reference docs (scripts.md, build.md) — pure markdown, no scripts |
+| `pi-web-access` | Reproducible multi-provider web-search setup | `scripts/install.sh` resolves the pi config dir and renders `assets/web-search.json.template` + copies `get-web-key.sh`/`web-keys-status.sh`; secrets live only in the generated `web-search-keys.env` |
 | `marimo-pair` | Pair-program with live marimo notebooks | Bash scripts for server discovery + code execution, reference docs for marimo internals — git submodule |
 
 ## Current Extensions Summary
